@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/utils/Strings.sol"; // Для использования Strings
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract MyERC1155Token is ERC1155 {
-    uint256 public constant ITEM_ID = 0;
-
-    constructor() ERC1155("https://ipfs.io/ipfs/QmeZMEcgLg5cz8Qxo5wV6KJW7wD9Pd5ohMeaGbcXoCJcUX/{id}.json") {
-        _mint(msg.sender, ITEM_ID, 100, "");
+contract MyERC1155Token is ERC1155, Ownable, ERC1155Supply {
+    constructor(address owner) ERC1155("https://ipfs.io/ipfs/QmSVpp9gvoh7L6XMtjUjKPLQV7Fg3EfHa1GnH4UV7pNE6k?filename=photo_2023-02-05_15-53-29.jpg") Ownable(owner) {
     }
 
-    function buy(uint256 amount) external payable {
-        require(msg.value >= amount * 0.01 ether, "Insufficient ETH for purchase");
-        _mint(msg.sender, ITEM_ID, amount, "");
+    function newURI(string memory uri) public onlyOwner {
+        _setURI(uri);
     }
 
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        return string(abi.encodePacked("https://ipfs.io/ipfs/QmeZMEcgLg5cz8Qxo5wV6KJW7wD9Pd5ohMeaGbcXoCJcUX/", Strings.toString(tokenId), ".json"));
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override(ERC1155, ERC1155Supply)
+    {
+        super._update(from, to, ids, values);
     }
 }
