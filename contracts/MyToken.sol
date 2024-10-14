@@ -1,42 +1,47 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MyToken is ERC20, ERC20Permit, Ownable {
-    uint256 public constant pricePerToken = 0.001 ether;
+contract MyERC20Token is ERC20 {
+    address public owner;
+    uint256 public fee = 1; // 1% комиссия
 
-    constructor(address initialOwner)
-    ERC20("MyToken", "MTK")
-    ERC20Permit("MyToken")
-    Ownable(initialOwner)
-    {
-
+    constructor() ERC20("MyERC20Token", "M20") {
+        owner = msg.sender;
+        _mint(msg.sender, 1000000 * 10 ** decimals()); // Минтим 1 миллион токенов
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+    function setFee(uint256 _fee) external {
+        require(msg.sender == owner, "Only owner can set fee");
+        fee = _fee;
     }
 
-    function buyToken() external payable {
-        uint256 tokensToBuy = msg.value / pricePerToken;
-        require(tokensToBuy > 0, "Not enough Ether sent");
+    // Переопределение функции transfer для расчета комиссии
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        uint256 feeAmount = (amount * fee) / 100; // Рассчитываем комиссию в 1%
+        uint256 amountAfterFee = amount - feeAmount;
+
+        // Переводим комиссию владельцу контракта
+        super.transfer(owner, feeAmount);
+        // Переводим оставшиеся средства получателю
+        return super.transfer(recipient, amountAfterFee);
+    }
+
+    // Переопределение функции transferFrom для расчета комиссии
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        uint256 feeAmount = (amount * fee) / 100; // Рассчитываем комиссию в 1%
+        uint256 amountAfterFee = amount - feeAmount;
+
+        // Переводим комиссию владельцу контракта
+        super.transferFrom(sender, owner, feeAmount);
+        // Переводим оставшиеся средства получателю
+        return super.transferFrom(sender, recipient, amountAfterFee);
+    }
+
+    // Функция покупки токенов
+    function buy() external payable {
+        uint256 tokensToBuy = msg.value * 100; // Курс: 1 ETH = 100 токенов
         _mint(msg.sender, tokensToBuy);
-    }
-
-    function transfer(address to, uint256 amount) public override returns (bool) {
-        uint256 fee = amount / 100;
-        uint256 amountAfterFee = amount - fee;
-        _transfer(_msgSender(), owner(), fee);
-        return super.transfer(to, amountAfterFee);
-    }
-
-    function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
-        uint256 fee = amount / 100;
-        uint256 amountAfterFee = amount - fee;
-        _transfer(from, owner(), fee);
-        return super.transferFrom(from, to, amountAfterFee);
     }
 }

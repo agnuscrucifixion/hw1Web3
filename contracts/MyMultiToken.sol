@@ -1,27 +1,23 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/utils/Strings.sol"; // Для использования Strings
 
-contract MyMultiToken is ERC1155, Ownable, ERC1155Supply {
-    uint256 public constant pricePerToken = 0.005 ether;
-    uint256 public constant tokenID = 1;
+contract MyERC1155Token is ERC1155 {
+    uint256 public constant ITEM_ID = 0;
 
-    constructor(address initialOwner)
-    ERC1155("https://my-multitoken-metadata-url.com/token/1.json")
-    Ownable(initialOwner)
-    {}
-
-    function setURI(string memory newuri) public onlyOwner {
-        _setURI(newuri);
+    constructor() ERC1155("https://myapi.com/metadata/{id}.json") {
+        _mint(msg.sender, ITEM_ID, 100, "");
     }
 
-    function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
-    internal
-    override(ERC1155, ERC1155Supply)
-    {
-        super._update(from, to, ids, values);
+    function buy(uint256 amount) external payable {
+        require(msg.value >= amount * 0.01 ether, "Insufficient ETH for purchase");
+        _mint(msg.sender, ITEM_ID, amount, "");
+    }
+
+    // Переопределение функции для формирования правильного URI
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        return string(abi.encodePacked("https://myapi.com/metadata/", Strings.toString(tokenId), ".json"));
     }
 }
