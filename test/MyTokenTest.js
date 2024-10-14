@@ -80,8 +80,8 @@ describe("Token Contracts", function () {
         });
 
         it("Should return correct URI for tokens", async function () {
-            const uri = await erc1155.uri(0);
-            expect(uri).to.equal("https://myapi.com/metadata/0.json");
+            const uri = await erc1155.uri(1);
+            expect(uri).to.equal("https://ipfs.io/ipfs/QmeZMEcgLg5cz8Qxo5wV6KJW7wD9Pd5ohMeaGbcXoCJcUX/1.json");
         });
     });
 });

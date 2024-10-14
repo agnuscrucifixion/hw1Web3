@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Strings.sol"; // Для использов
 contract MyERC1155Token is ERC1155 {
     uint256 public constant ITEM_ID = 0;
 
-    constructor() ERC1155("https://myapi.com/metadata/{id}.json") {
+    constructor() ERC1155("https://ipfs.io/ipfs/QmeZMEcgLg5cz8Qxo5wV6KJW7wD9Pd5ohMeaGbcXoCJcUX/{id}.json") {
         _mint(msg.sender, ITEM_ID, 100, "");
     }
 
@@ -16,8 +16,7 @@ contract MyERC1155Token is ERC1155 {
         _mint(msg.sender, ITEM_ID, amount, "");
     }
 
-    // Переопределение функции для формирования правильного URI
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return string(abi.encodePacked("https://myapi.com/metadata/", Strings.toString(tokenId), ".json"));
+        return string(abi.encodePacked("https://ipfs.io/ipfs/QmeZMEcgLg5cz8Qxo5wV6KJW7wD9Pd5ohMeaGbcXoCJcUX/", Strings.toString(tokenId), ".json"));
     }
 }
