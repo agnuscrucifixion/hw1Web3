@@ -1,42 +1,31 @@
-const hardhat = require("hardhat");
+const {ethers} = require("hardhat");
 
-async function main() {
+async function executeMinting() {
     try {
-        const [owner, otherSigner] = await hardhat.ethers.getSigners();
+        const ERC721TokenFactory = await ethers.getContractFactory("MyERC721Token");
+        const signers = await ethers.getSigners();
+        console.log(signers)
+        const primaryOwner = signers[0];
 
-        const erc20Address = "0x573e3B75A429325aaCaC1DAea37BD91b7CBD36D4";
-        const erc721Address = "0x5d82547842b035186b686be7b7b37FFecD8E3e20";
-        const erc1155Address = "0x5E3efE5401A9f1551A5E2CFAc9ca76Fb1fBEb6cC";
+        const secondarySigner = signers[1];
 
-        const erc20Token = await hardhat.ethers.getContractFactory("MyERC20Token");
-        const erc20 = await erc20Token.attach(erc20Address);
+        const deployedContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+        const contractInstance = await ERC721TokenFactory.attach(deployedContractAddress);
 
-        const erc721Token = await hardhat.ethers.getContractFactory("MyERC721Token");
-        const erc721 = await erc721Token.attach(erc721Address);
+        const mintResult = await contractInstance.safeMint(primaryOwner.address, 200);
+        const newTokenOwner = await contractInstance.ownerOf(200);
 
-        const erc1155Token = await hardhat.ethers.getContractFactory("MyERC1155Token");
-        const erc1155 = await erc1155Token.attach(erc1155Address);
+        console.log("Mint Result:", mintResult);
+        console.log("New Token Owner:", newTokenOwner);
 
-        const erc20Transfers = await erc20.queryFilter("Transfer");
-        console.log("ERC20 Transfer Events:");
-        console.log(erc20Transfers);
-
-        const erc721Transfers = await erc721.queryFilter("Transfer");
-        console.log("ERC721 Transfer Events:");
-        console.log(erc721Transfers);
-
-        const erc1155TransferSingle = await erc1155.queryFilter("TransferSingle");
-        console.log("ERC1155 TransferSingle Events:");
-        console.log(erc1155TransferSingle);
-
-        const erc1155TransferBatch = await erc1155.queryFilter("TransferBatch");
-        console.log("ERC1155 TransferBatch Events:");
-        console.log(erc1155TransferBatch);
+        await contractInstance.safeMint(primaryOwner.address, 201);
+        await contractInstance.approve(secondarySigner.address, 201);
+        await contractInstance.connect(secondarySigner).safeTransferFrom(primaryOwner.address, secondarySigner.address, 201);
 
     } catch (error) {
-        console.error(error);
+        console.error("Error during minting process:", error);
         process.exit(1);
     }
 }
 
-main();
+executeMinting();
