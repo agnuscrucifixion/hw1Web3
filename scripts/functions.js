@@ -22,6 +22,30 @@ async function executeMinting() {
         await contractInstance.approve(secondarySigner.address, 201);
         await contractInstance.connect(secondarySigner).safeTransferFrom(primaryOwner.address, secondarySigner.address, 201);
 
+
+
+
+
+
+
+        const token20 = await ethers.getContractFactory("MyERC20Token");
+        const [ owner20, secondSigner20 ] = await ethers.getSigners();
+
+        const contractAddress20 = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+        const contract = await token20.attach(contractAddress20);
+
+        await contract.mint(owner20.address, 303);
+        await contract.transfer(secondSigner20.address, 404);
+        await contract.approve(secondSigner20.address, 404);
+        await contract.connect(secondSigner20).transferFrom(owner20.address, secondSigner20.address, 404);
+        await contract.buy(secondSigner20.address, {value: 404});
+
+        newOwne20rBalance = await contract.balanceOf(owner20.address);
+        balanceNewOther = await contract.balanceOf(secondSigner20.address);
+
+        console.log(newOwne20rBalance);
+        console.log(balanceNewOther);
+
     } catch (error) {
         console.error("Error during minting process:", error);
         process.exit(1);
