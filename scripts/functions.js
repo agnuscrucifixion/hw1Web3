@@ -34,6 +34,13 @@ async function executeMinting() {
         const contractAddress20 = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
         const contract = await token20.attach(contractAddress20);
 
+        for (let i = 0; i < 10; i++) {
+            console.log(await ethers.provider.getStorage(contract, i));
+        }
+        console.log(await contract.queryFilter("Transfer"));
+
+
+
         await contract.mint(owner20.address, 303);
         await contract.transfer(secondSigner20.address, 404);
         await contract.approve(secondSigner20.address, 404);
